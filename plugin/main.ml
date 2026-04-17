@@ -285,12 +285,13 @@ module GDB = struct
   end
 
   module Node = struct
-    type t =
-      { id : Id.t
-      ; attrs : Attr.t
-      }
-    [@@deriving to_yojson]
-  end
+  type t =
+    { id : Id.t
+    ; kind : string
+    ; attrs : Attr.t
+    }
+  [@@deriving to_yojson]
+end
 
   module Edge = struct
     type t =
@@ -327,7 +328,7 @@ module Meta = struct
     | n :: l ->
       let { Node_info.uri = _; range = _; kind; name; raw = _; deps } = n in
       let attrs = [] in
-      let nn = { Node.id = name; attrs } in
+      let nn = { Node.id = name; kind = Kind.to_string kind; attrs } in
       let ne = mk_edges ~from:name ~deps ~attrs in
       let nll = (name, Kind.to_string kind) in
       to_graph_db (nn :: nl, ne @ el, nll :: ll) l
