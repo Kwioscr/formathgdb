@@ -1,0 +1,5 @@
+examples/*.meta.json
+examples/*.diags
+examples/*.vo
+examples/*.vos
+examples/*.vok

@@ -35,8 +35,8 @@ dune build plugins/metanejo
 # 6. Installer
 echo "Installation du plugin..."
 PLUGIN_DIR=$(opam var lib)/coq-lsp/plugin/metanejo
-cp _build/default/plugins/metanejo/Metanejo_plugin.cmxs \
-   "$PLUGIN_DIR/Metanejo_plugin.cmxs"
+cp _build/default/plugins/metanejo/Metanejo_local.cmxs \
+   "$PLUGIN_DIR/Metanejo_local.cmxs"
 
 echo "=== Build terminé avec succès ! ==="
 echo ""
