@@ -36,18 +36,3 @@ fcc --root=<dossier_projet> \
 1. Copier le `.meta.json` dans le dossier `import` de Neo4j
 2. Lancer les requêtes dans `neo4j/import.cypher`
 
-## Structure
-
-formathgdb/
-├── plugin/
-│   ├── main.ml        # Plugin OCaml metanejo amélioré
-│   └── dune           # Fichier de build
-├── neo4j/
-│   └── import.cypher  # Requêtes d'import Neo4j
-├── examples/
-│   ├── _RocqProject
-│   └── Rtrigo1.v
-└── scripts/
-├── build.sh       # Compile et installe le plugin
-└── run.sh         # Lance le plugin sur Rtrigo1.v
-
