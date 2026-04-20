@@ -251,13 +251,14 @@ module Node_info = struct
   module Coq = Lsp.JCoq
 
   type t =
-    { uri : Lang.LUri.File.t
-    ; range : Lang.Range.t
-    ; kind : Kind.t
-    ; name : string
-    ; raw : string
-    ; deps : string list
-    }
+  { uri : Lang.LUri.File.t
+  ; range : Lang.Range.t
+  ; kind : Kind.t
+  ; name : string
+  ; raw : string
+  ; deps_statement : string list
+  ; deps_proof : string list
+  }
   [@@deriving to_yojson]
 
   let of_node ~io:_ ~token:_ ~uri ~(contents : Contents.t) (node : Doc.Node.t) =
@@ -270,9 +271,9 @@ module Node_info = struct
         | Some name -> name
         | None -> "anonymous"
       in
-      let deps = List.sort_uniq String.compare deps in
+      let deps_statement = List.sort_uniq String.compare deps in
       let raw = Fleche.Contents.extract_raw ~contents ~range in
-      Some { uri; range; kind; name; raw; deps }
+      Some { uri; range; kind; name; raw; deps_statement; deps_proof = [] }
 end
 
 module GDB = struct
@@ -318,18 +319,21 @@ module Meta = struct
 
   type t = Node.t list * Edge.t list * Labels.t
 
-  let mk_edges ~from ~deps ~attrs =
-    let f to_ = { Edge.from; to_; attrs; label = "USES" } in
-    List.map f deps
-
   let rec to_graph_db (nl, el, ll) (l : Node_info.t list) : t =
     match l with
     | [] -> (List.rev nl, List.rev el, List.rev ll)
     | n :: l ->
-      let { Node_info.uri = _; range = _; kind; name; raw = _; deps } = n in
+      let { Node_info.uri = _; range = _; kind; name; raw = _
+        ; deps_statement; deps_proof } = n in
       let attrs = [] in
       let nn = { Node.id = name; kind = Kind.to_string kind; attrs } in
-      let ne = mk_edges ~from:name ~deps ~attrs in
+      let ne_statement = List.map
+        (fun to_ -> { Edge.from = name; to_; attrs; label = "USES_STATEMENT" })
+        deps_statement in
+      let ne_proof = List.map
+        (fun to_ -> { Edge.from = name; to_; attrs; label = "USES_PROOF" })
+        deps_proof in
+      let ne = ne_statement @ ne_proof in
       let nll = (name, Kind.to_string kind) in
       to_graph_db (nn :: nl, ne @ el, nll :: ll) l
 
@@ -450,10 +454,10 @@ let dump_meta ~io ~token ~out_file ~(doc : Doc.t) =
         match Hashtbl.find_opt body_deps_tbl ni.name with
         | None -> ni
         | Some new_deps ->
-          let merged =
-            List.sort_uniq String.compare (ni.deps @ new_deps)
+          let deps_proof =
+            List.sort_uniq String.compare (ni.deps_proof @ new_deps)
           in
-          { ni with deps = merged })
+          { ni with deps_proof })
       ll
   in
   let ll = Meta.to_graph_db ll in
